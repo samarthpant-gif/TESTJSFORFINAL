@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainrot Casino | Quiz Generator</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #111;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+        textarea {
+            width: 80%;
+            height: 150px;
+            margin: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #output,
+        #gradeOutput {
+            white-space: pre-wrap;
+            margin-top: 20px;
+            text-align: left;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        #answersSection {
+            display: none;
+            width: 80%;
+            margin: 30px auto 0;
+            padding-top: 24px;
+            border-top: 1px solid #444;
+        }
+        #answersSection h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+        }
+        .answer-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .answer-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .answer-cell label {
+            font-size: 12px;
+            color: #aaa;
+        }
+        .answer-cell input {
+            width: 44px;
+            height: 44px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            background: #222;
+            color: #fff;
+            border: 2px solid #555;
+            border-radius: 8px;
+            outline: none;
+        }
+        .answer-cell input:focus {
+            border-color: #6cf;
+        }
+        .answer-cell input.invalid {
+            border-color: #e55;
+        }
+        #gradeOutput {
+            background: #1a2a1a;
+            border: 1px solid #3a5a3a;
+            min-height: 48px;
+        }
+        #gradeOutput:empty {
+            display: none;
+        }
+        #gradeStatus {
+            margin-top: 12px;
+            min-height: 1.2em;
+        }
+        #pointsBar {
+            background: #2a2200;
+            border: 2px solid #c9a227;
+            border-radius: 10px;
+            padding: 14px 24px;
+            margin: 0 auto 24px;
+            width: fit-content;
+            min-width: 200px;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        #pointsBar span {
+            color: #ffd54f;
+        }
+    </style>
+</head>
+<body>
+
+<div id="pointsBar">Points: <span id="pointsDisplay">0</span></div>
+
+<h1>Quiz Generator</h1>
+
+<textarea id="manualInput" placeholder="Paste study material here..."></textarea><br>
+<button type="button" onclick="generateQuiz()">Generate Quiz</button>
+
+<p id="status"></p>
+<div id="output"></div>
+
+<section id="answersSection">
+    <h2>Your answers (A, B, C, or D)</h2>
+    <div class="answer-grid" id="answerGrid"></div>
+    <button type="button" id="submitBtn" onclick="submitAnswers()">Submit Answers</button>
+    <p id="gradeStatus"></p>
+    <div id="gradeOutput"></div>
+</section>
+
+<script>
+    const QUESTION_COUNT = 5;
+    const POINTS_PER_CORRECT = 4;
+
+    let currentQuiz = "";
+    let quizScore = 0;      // correct answers from last graded quiz (0–5)
+    let userPoints = 0;     // total points earned (quizScore × 4 per round, accumulated)
+
+    const answerInputs = [];
+
+    function updatePointsDisplay() {
+        document.getElementById("pointsDisplay").textContent = userPoints;
+    }
+
+    function applyScore(correctCount) {
+        quizScore = correctCount;
+        userPoints += quizScore * POINTS_PER_CORRECT;
+        updatePointsDisplay();
+    }
+
+    function initAnswerBoxes() {
+        const grid = document.getElementById("answerGrid");
+        grid.innerHTML = "";
+        answerInputs.length = 0;
+
+        for (let i = 1; i <= QUESTION_COUNT; i++) {
+            const cell = document.createElement("div");
+            cell.className = "answer-cell";
+
+            const label = document.createElement("label");
+            label.textContent = "Q" + i;
+            label.setAttribute("for", "answer" + i);
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.id = "answer" + i;
+            input.maxLength = 1;
+            input.autocomplete = "off";
+            input.inputMode = "text";
+            input.placeholder = "?";
+            input.setAttribute("aria-label", "Answer for question " + i);
+
+            input.addEventListener("input", () => {
+                const cleaned = input.value.toUpperCase().replace(/[^ABCD]/g, "");
+                input.value = cleaned;
+                input.classList.toggle("invalid", input.value.length === 1 && !/^[ABCD]$/.test(input.value));
+            });
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && i < QUESTION_COUNT) {
+                    e.preventDefault();
+                    answerInputs[i].focus();
+                }
+            });
+
+            cell.appendChild(label);
+            cell.appendChild(input);
+            grid.appendChild(cell);
+            answerInputs.push(input);
+        }
+    }
+
+    initAnswerBoxes();
+
+    function resetAnswersSection() {
+        document.getElementById("answersSection").style.display = "none";
+        document.getElementById("gradeOutput").textContent = "";
+        document.getElementById("gradeStatus").textContent = "";
+        answerInputs.forEach((inp) => {
+            inp.value = "";
+            inp.classList.remove("invalid");
+        });
+        currentQuiz = "";
+    }
+
+    function showAnswersSection() {
+        document.getElementById("answersSection").style.display = "block";
+        answerInputs.forEach((inp) => {
+            inp.value = "";
+            inp.classList.remove("invalid");
+        });
+        document.getElementById("gradeOutput").textContent = "";
+        document.getElementById("gradeStatus").textContent = "";
+    }
+
+    function collectAnswers() {
+        return answerInputs.map((inp) => inp.value.toUpperCase());
+    }
+
+    async function generateQuiz() {
+        const textData = document.getElementById("manualInput").value.trim();
+        const status = document.getElementById("status");
+        const output = document.getElementById("output");
+
+        if (!textData) {
+            status.textContent = "⚠️ Enter some text first";
+            return;
+        }
+
+        status.textContent = "⏳ Generating... (auto-retries if Google is busy)";
+        output.textContent = "";
+        resetAnswersSection();
+
+        try {
+            const res = await fetch("/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: textData })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                console.error(data);
+                const msg = data?.error?.message || data?.error || "Error generating quiz";
+                status.textContent = "❌ " + (typeof msg === "string" ? msg.split("\n")[0] : "Error generating quiz");
+                return;
+            }
+
+            status.textContent = "✅ Done! Fill in your answers below.";
+            output.textContent = data.result;
+            currentQuiz = data.result;
+            showAnswersSection();
+
+        } catch (err) {
+            console.error(err);
+            status.textContent = "❌ Server error";
+        }
+    }
+
+    async function submitAnswers() {
+        const gradeStatus = document.getElementById("gradeStatus");
+        const gradeOutput = document.getElementById("gradeOutput");
+
+        if (!currentQuiz) {
+            gradeStatus.textContent = "⚠️ Generate a quiz first";
+            return;
+        }
+
+        const answers = collectAnswers();
+        const empty = answers.findIndex((a) => !a);
+        if (empty !== -1) {
+            gradeStatus.textContent = "⚠️ Enter A, B, C, or D for all " + QUESTION_COUNT + " questions (missing Q" + (empty + 1) + ")";
+            answerInputs[empty].focus();
+            return;
+        }
+
+        const invalid = answers.some((a) => !/^[ABCD]$/.test(a));
+        if (invalid) {
+            gradeStatus.textContent = "⚠️ Only A, B, C, or D allowed";
+            return;
+        }
+
+        const summary = answers.map((a, i) => "Q" + (i + 1) + ": " + a).join(", ");
+        const sure = confirm(
+            "Are you sure you want to submit?\n\n" + summary + "\n\nYou cannot change answers after submitting."
+        );
+        if (!sure) return;
+
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.disabled = true;
+        gradeStatus.textContent = "⏳ Grading... (may take up to a minute if Google is busy — auto-retrying)";
+        gradeOutput.textContent = "";
+
+        try {
+            const res = await fetch("/grade", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ quiz: currentQuiz, answers })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                console.error(data);
+                const msg = data?.error?.message || data?.error || "Error grading quiz";
+                const short = typeof msg === "string" ? msg.split("\n")[0] : "Error grading quiz";
+                const busy = /high demand|try again|unavailable|503|429/i.test(short);
+                gradeStatus.textContent = busy
+                    ? "❌ Google’s AI is busy right now. Wait 30 seconds and click Submit again."
+                    : "❌ " + short;
+                return;
+            }
+
+            gradeOutput.textContent = data.result;
+            applyScore(data.score ?? 0);
+            const roundPoints = quizScore * POINTS_PER_CORRECT;
+            gradeStatus.textContent = "✅ Scored " + quizScore + "/" + QUESTION_COUNT + " (+ " + roundPoints + " points)";
+
+        } catch (err) {
+            console.error(err);
+            gradeStatus.textContent = "❌ Server error";
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
