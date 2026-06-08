@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainrot Index | Collection</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="token-bar">
+    <span class="tb-label">🪙 Brainrot Coins</span>
+    <span class="token-count" id="token-display">0</span>
+    <div class="tb-right">
+        <a href="quiz.html" class="earn-more">+ Earn more coins</a>
+    </div>
+</div>
+
+<header>
+    <div class="logo">
+        <a href="index.html" style="text-decoration: none; color: inherit;">Brainrot<span>Casino</span></a>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="quiz.html">Quizzes</a></li>
+            <li><a href="casino.html">Casino</a></li>
+            <li><a href="indexing.html" class="active">Index</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main class="index-container">
+    <div class="index-header">
+        <h2>Your Collection</h2>
+        <p>Spend Brainrot Coins to unlock packs. Complete the index for permanent multipliers!</p>
+        <p id="total-multiplier" class="multiplier-summary">Total multiplier: none yet</p>
+        <p id="index-status" class="index-status"></p>
+
+        <div class="progress-container">
+            <span id="progress-label">Completion: 0%</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="item-grid" id="item-grid"></div>
+</main>
+
+<footer>
+    <p>© 2025 Brainrot Casino. All rights reserved.</p>
+</footer>
+
+<script src="wallet.js"></script>
+<script src="catalog.js"></script>
+<script src="indexing.js"></script>
+</body>
+</html>

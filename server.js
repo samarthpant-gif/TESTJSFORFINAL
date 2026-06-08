@@ -2,6 +2,8 @@
 // 1. Frontend sends request → 2. Express receives → 3. Middleware → 4. Route runs
 // → 5. askGemini() calls API → 6. Response comes back → 7. Send to frontend → 8. UI updates
 
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -11,9 +13,9 @@ const app = express();
 // 3. Middleware processes it (runs on every request before your routes)
 app.use(cors()); // allow browser requests from the page
 app.use(express.json()); // parse JSON body from frontend into req.body
-app.use(express.static(path.join(__dirname), { index: "quiz.html" })); // serve quiz.html and assets
+app.use(express.static(path.join(__dirname))); // serve index.html and assets
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyA3qdIytJQn7eTGD3jTn8eqfvi4GGdNQQk";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const QUIZ_QUESTION_COUNT = 5;
 
 const GEMINI_MODELS = ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
@@ -40,6 +42,17 @@ function isRetryableError(status, data) {
     msg.includes("resource has been exhausted") ||
     msg.includes("quota")
   );
+}
+
+function requireApiKey(res) {
+  if (GEMINI_API_KEY) return true;
+  res.status(500).json({
+    error: {
+      message:
+        "GEMINI_API_KEY is not set. Create a new key at https://aistudio.google.com/apikey and add it to a .env file.",
+    },
+  });
+  return false;
 }
 
 // 5. askGemini() calls API — low-level fetch to Google's Gemini endpoint
@@ -114,6 +127,8 @@ function reconcileGradeScore(gradeText, questionCount) {
 
 // 2. Express receives it — POST /generate (after step 1: frontend fetch in quiz.html)
 app.post("/generate", async (req, res) => {
+  if (!requireApiKey(res)) return;
+
   // 4. Your route runs — read parsed body, validate, build prompt
   const { text } = req.body;
 
@@ -139,6 +154,8 @@ ${text}`;
 
 // 2. Express receives it — POST /grade (after step 1: frontend submitAnswers() fetch)
 app.post("/grade", async (req, res) => {
+  if (!requireApiKey(res)) return;
+
   // 4. Your route runs — read quiz + answers, validate, build grading prompt
   const { quiz, answers } = req.body;
 
@@ -186,5 +203,10 @@ End with one encouraging sentence.`;
 });
 
 app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000/quiz.html");
+  console.log("Server running on http://localhost:3000");
+  if (!GEMINI_API_KEY) {
+    console.warn(
+      "Warning: GEMINI_API_KEY is missing. Quiz generation will fail until you add it to .env"
+    );
+  }
 });

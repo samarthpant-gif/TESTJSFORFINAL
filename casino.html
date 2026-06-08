@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainrot Casino | Casino</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="token-bar">
+    <span class="tb-label">🪙 Brainrot Coins</span>
+    <span class="token-count" id="token-display">0</span>
+    <div class="tb-right">
+        <a href="quiz.html" class="earn-more">+ Earn more coins</a>
+    </div>
+</div>
+
+<header>
+    <div class="logo">
+        <a href="index.html" style="text-decoration:none;color:inherit;">Brainrot<span>Casino</span></a>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="quiz.html">Quizzes</a></li>
+            <li><a href="casino.html" class="active">Casino</a></li>
+            <li><a href="indexing.html">Index</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="casino-wrapper">
+    <h1 class="casino-title">🎰 Brainrot Casino</h1>
+    <p class="casino-sub">Gamble your quiz earnings — then buy packs in the Index!</p>
+
+    <div class="game-tabs">
+        <button class="tab-btn active" onclick="switchGame('roulette')">🎡 Roulette</button>
+        <button class="tab-btn" onclick="switchGame('slots')">🎰 Slots</button>
+        <button class="tab-btn" onclick="switchGame('blackjack')">🃏 Blackjack</button>
+        <button class="tab-btn" onclick="switchGame('shop')">🛒 Shop</button>
+    </div>
+
+    <!-- ROULETTE -->
+    <div class="game-panel active" id="panel-roulette">
+        <div class="game-card">
+            <h2>🎡 Roulette</h2>
+            <p class="game-desc">Pick a bet type, set your wager, and spin!</p>
+
+            <div class="roulette-visual">
+                <div class="roulette-wheel-wrap">
+                    <div class="roulette-pointer">▼</div>
+                    <div class="roulette-wheel" id="roulette-wheel"></div>
+                    <div class="roulette-center"></div>
+                </div>
+                <div class="landed-number" id="landed-number">—</div>
+            </div>
+
+            <div class="roulette-bet-types">
+                <button class="rbet-btn active" onclick="selectRBet(this,'red')">🔴 Red</button>
+                <button class="rbet-btn" onclick="selectRBet(this,'black')">⚫ Black</button>
+                <button class="rbet-btn" onclick="selectRBet(this,'green')">🟢 Green</button>
+                <button class="rbet-btn" onclick="selectRBet(this,'odd')">ODD</button>
+                <button class="rbet-btn" onclick="selectRBet(this,'even')">EVEN</button>
+                <button class="rbet-btn" onclick="selectRBet(this,'low')">1–18</button>
+                <button class="rbet-btn" onclick="selectRBet(this,'high')">19–36</button>
+            </div>
+
+            <div class="bet-row">
+                <label>Bet:</label>
+                <input type="number" class="bet-input" id="r-bet" value="10" min="1">
+                <div class="bet-quick">
+                    <button onclick="quickBet('r-bet',0.5)">½</button>
+                    <button onclick="quickBet('r-bet',2)">2x</button>
+                    <button onclick="allIn('r-bet')">All In</button>
+                </div>
+            </div>
+
+            <button class="play-btn" id="r-spin-btn" onclick="spinRoulette()">SPIN 🎡</button>
+            <div class="result-box idle" id="r-result">Place your bet and spin!</div>
+        </div>
+    </div>
+
+    <!-- SLOTS -->
+    <div class="game-panel" id="panel-slots">
+        <div class="game-card">
+            <h2>🎰 Slots</h2>
+
+            <div class="slot-machine">
+                <div class="slot-reel" id="reel-0">🎰</div>
+                <div class="slot-reel" id="reel-1">🎰</div>
+                <div class="slot-reel" id="reel-2">🎰</div>
+            </div>
+
+            <div class="bet-row">
+                <label>Bet:</label>
+                <input type="number" class="bet-input" id="s-bet" value="10" min="1">
+                <div class="bet-quick">
+                    <button onclick="quickBet('s-bet',0.5)">½</button>
+                    <button onclick="quickBet('s-bet',2)">2x</button>
+                    <button onclick="allIn('s-bet')">All In</button>
+                </div>
+            </div>
+
+            <button class="play-btn" id="s-spin-btn" onclick="spinSlots()">PULL 🎰</button>
+            <div class="result-box idle" id="s-result">Spin the reels!</div>
+        </div>
+    </div>
+
+    <!-- BLACKJACK -->
+    <div class="game-panel" id="panel-blackjack">
+        <div class="game-card">
+            <h2>🃏 Blackjack</h2>
+
+            <div class="bj-table">
+                <div>
+                    <div class="bj-hand-label">Dealer</div>
+                    <div class="bj-cards" id="dealer-cards"></div>
+                    <div class="bj-score" id="dealer-score"></div>
+                </div>
+
+                <div>
+                    <div class="bj-hand-label">You</div>
+                    <div class="bj-cards" id="player-cards"></div>
+                    <div class="bj-score" id="player-score"></div>
+                </div>
+            </div>
+
+            <div class="bet-row">
+                <label>Bet:</label>
+                <input type="number" class="bet-input" id="bj-bet" value="10" min="1">
+                <div class="bet-quick">
+                    <button onclick="quickBet('bj-bet',0.5)">½</button>
+                    <button onclick="quickBet('bj-bet',2)">2x</button>
+                    <button onclick="allIn('bj-bet')">All In</button>
+                </div>
+            </div>
+
+            <div class="bj-actions">
+                <button class="bj-btn" id="bj-deal-btn" onclick="bjDeal()">DEAL</button>
+                <button class="bj-btn" id="bj-hit-btn" onclick="bjHit()" disabled>HIT</button>
+                <button class="bj-btn" id="bj-stand-btn" onclick="bjStand()" disabled>STAND</button>
+                <button class="bj-btn danger" id="bj-double-btn" onclick="bjDouble()" disabled>DOUBLE</button>
+            </div>
+            <div class="result-box idle" id="bj-result">Place your bet and deal!</div>
+        </div>
+    </div>
+
+    <!-- SHOP (redirects to Index) -->
+    <div class="game-panel" id="panel-shop">
+        <div class="game-card shop-redirect-card">
+            <h2>🛒 Brainrot Shop</h2>
+            <p class="game-desc">Spend your coins in the Index to unlock brainrot packs and earn permanent multipliers.</p>
+            <a href="indexing.html" class="play-btn shop-link-btn">Open Index Shop →</a>
+        </div>
+    </div>
+</div>
+
+<script src="wallet.js"></script>
+<script src="casino.js"></script>
+</body>
+</html>

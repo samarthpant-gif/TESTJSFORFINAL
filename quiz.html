@@ -5,13 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brainrot Casino | Quiz Generator</title>
+    <link rel="stylesheet" href="style.css">
     <style>
         body {
-            font-family: Arial;
-            background: #111;
-            color: white;
             text-align: center;
-            padding: 40px;
+            padding: 0 0 40px;
+        }
+        .quiz-main {
+            padding: 40px 20px;
         }
         textarea {
             width: 80%;
@@ -98,26 +99,33 @@
             margin-top: 12px;
             min-height: 1.2em;
         }
-        #pointsBar {
-            background: #2a2200;
-            border: 2px solid #c9a227;
-            border-radius: 10px;
-            padding: 14px 24px;
-            margin: 0 auto 24px;
-            width: fit-content;
-            min-width: 200px;
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-        #pointsBar span {
-            color: #ffd54f;
-        }
     </style>
 </head>
 <body>
 
-<div id="pointsBar">Points: <span id="pointsDisplay">0</span></div>
+<div class="token-bar">
+    <span class="tb-label">🪙 Brainrot Coins</span>
+    <span class="token-count" id="token-display">0</span>
+    <div class="tb-right">
+        <a href="casino.html" class="earn-more">Go to Casino →</a>
+    </div>
+</div>
 
+<header>
+    <div class="logo">
+        <a href="index.html" style="text-decoration:none;color:inherit;">Brainrot<span>Casino</span></a>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="quiz.html" class="active">Quizzes</a></li>
+            <li><a href="casino.html">Casino</a></li>
+            <li><a href="indexing.html">Index</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main class="quiz-main">
 <h1>Quiz Generator</h1>
 
 <textarea id="manualInput" placeholder="Paste study material here..."></textarea><br>
@@ -133,25 +141,25 @@
     <p id="gradeStatus"></p>
     <div id="gradeOutput"></div>
 </section>
+</main>
 
+<script src="wallet.js"></script>
 <script>
     const QUESTION_COUNT = 5;
-    const POINTS_PER_CORRECT = 4;
 
     let currentQuiz = "";
-    let quizScore = 0;      // correct answers from last graded quiz (0–5)
-    let userPoints = 0;     // total points earned (quizScore × 4 per round, accumulated)
+    let quizScore = 0;
 
     const answerInputs = [];
 
-    function updatePointsDisplay() {
-        document.getElementById("pointsDisplay").textContent = userPoints;
-    }
+    Wallet.updateCoinDisplay("token-display");
 
     function applyScore(correctCount) {
         quizScore = correctCount;
-        userPoints += quizScore * POINTS_PER_CORRECT;
-        updatePointsDisplay();
+        const earned = quizScore * Wallet.POINTS_PER_CORRECT;
+        Wallet.addCoins(earned);
+        Wallet.updateCoinDisplay("token-display");
+        return earned;
     }
 
     function initAnswerBoxes() {
@@ -319,9 +327,10 @@
             }
 
             gradeOutput.textContent = data.result;
-            applyScore(data.score ?? 0);
-            const roundPoints = quizScore * POINTS_PER_CORRECT;
-            gradeStatus.textContent = "✅ Scored " + quizScore + "/" + QUESTION_COUNT + " (+ " + roundPoints + " points)";
+            const roundPoints = applyScore(data.score ?? 0);
+            gradeStatus.textContent =
+                "✅ Scored " + quizScore + "/" + QUESTION_COUNT +
+                " (+ " + roundPoints + " coins). Spend them in the Casino or Index!";
 
         } catch (err) {
             console.error(err);
